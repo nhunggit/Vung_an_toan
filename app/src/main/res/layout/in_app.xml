@@ -56,7 +56,6 @@
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:background="@drawable/icon_menu"
-                    android:layout_marginRight="20dp"
                     android:visibility="gone"/>
 
             </LinearLayout>
