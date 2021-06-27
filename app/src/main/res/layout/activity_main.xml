@@ -1,0 +1,72 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:minHeight="?attr/actionBarSize"
+        tools:ignore="MissingConstraints">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:background="#00aaaaaa">
+
+            <TextView
+                android:id="@+id/txt_name_app"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Safe Space"
+                android:textColor="#59aee5"
+                android:textSize="24sp"/>
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="150dp"
+        android:src="@drawable/icon_safe_space"
+        android:layout_marginTop="55dp"
+        android:layout_gravity="center_horizontal"/>
+
+    <LinearLayout
+        android:id="@+id/ll_create_pass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginTop="59dp"
+        android:layout_gravity="center_horizontal">
+
+    <Button
+        android:id="@+id/login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Login"
+        android:background="@drawable/button"
+        android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/log_error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:textColor="#EA0606"
+        android:textSize="18dp"
+        android:padding="20dp"
+        android:layout_gravity="center"
+        android:gravity="center"/>
+
+
+</LinearLayout>

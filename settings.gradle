@@ -1,0 +1,2 @@
+rootProject.name = "SafeSpace"
+include ':app'
