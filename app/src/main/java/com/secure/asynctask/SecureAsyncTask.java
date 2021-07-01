@@ -26,11 +26,13 @@ public class SecureAsyncTask extends AsyncTask<Void, Void, File> {
     private File decryptFolder;
     private LinearLayout progressBar;
     private GridView gridView;
+    String password;
 
-    public SecureAsyncTask(SecureAdapter secureAdapter, List<Path> list, Activity contextParent){
+    public SecureAsyncTask(SecureAdapter secureAdapter, List<Path> list, Activity contextParent, String password){
         this.list=list;
         this.secureAdapter= secureAdapter;
         this.contextParent= contextParent;
+        this.password= password;
     }
 
     @Override
@@ -53,7 +55,8 @@ public class SecureAsyncTask extends AsyncTask<Void, Void, File> {
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                Process.decryptFolder(UtilSecure.folderEncrypt,UtilSecure.folderDecrypt);
+                Process process= new Process(password);
+                process.decryptFolder(UtilSecure.folderEncrypt,UtilSecure.folderDecrypt);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

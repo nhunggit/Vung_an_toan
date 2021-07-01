@@ -30,16 +30,19 @@ public class DecryptAsyncTask extends AsyncTask<Void, Void, Void> {
     private Path path_delete;
     private List<Path> list;
     private LinearLayout progressBar;
+    private String password;
 
-    public DecryptAsyncTask(Activity contextParent, Path path_delete, List<Path> list){
+    public DecryptAsyncTask(Activity contextParent, Path path_delete, List<Path> list, String password){
         this.contextParent= contextParent;
         this.path_delete= path_delete;
         this.list= list;
+        this.password= password;
     }
     @Override
     protected Void doInBackground(Void... voids) {
         try {
-            Process.decrypt(new FileInputStream(path_delete.getPathEncrypt()),new FileOutputStream(path_delete.getPathDecrypt()));
+            Process process= new Process(password);
+            process.decrypt(new FileInputStream(path_delete.getPathEncrypt()),new FileOutputStream(path_delete.getPathDecrypt()));
             MediaScannerConnection.scanFile(contextParent, new String[]{path_delete.getPathDecrypt()}, null,
                     new MediaScannerConnection.OnScanCompletedListener() {
                         @Override

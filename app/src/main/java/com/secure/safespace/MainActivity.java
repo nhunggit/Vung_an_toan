@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import androidx.biometric.BiometricPrompt;
@@ -22,7 +23,11 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.secure.util.BosManagerCompat;
+import com.secure.util.SafeSpaceUtils;
+
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
@@ -47,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     BiometricPrompt.PromptInfo promptInfo;
     private Button login;
     private TextView logError;
+    private BosManagerCompat bosManagerCompat;
+    private Context context;
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
@@ -72,8 +79,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
                 Toast.makeText(getApplicationContext(), "Authentication succeeded", Toast.LENGTH_SHORT).show();
-                Intent intent= new Intent(getApplicationContext(),SecureActivity.class);
-                startActivity(intent);
+//                Intent intent= new Intent(getApplicationContext(),SecureActivity.class);
+//                startActivity(intent);
+                context= getApplicationContext();
+                bosManagerCompat= new BosManagerCompat(context);
+                try {
+                    if(!bosManagerCompat.hasKey()){
+                        Intent intent= new Intent(MainActivity.this,PasswordActivity.class);
+                        intent.setAction(SafeSpaceUtils.ACTION_CREATE_PASS);
+                        startActivity(intent);
+                       // finish();
+                    }else{
+                        Intent intent= new Intent(MainActivity.this,PasswordActivity.class);
+                        intent.setAction(SafeSpaceUtils.ACTION_LOGIN);
+                        startActivity(intent);
+                        //finish();
+                    }
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                }
+
             }
 
             public void onAuthenticationFailed() {

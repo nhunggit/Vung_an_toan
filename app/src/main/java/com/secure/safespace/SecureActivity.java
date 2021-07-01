@@ -1,5 +1,7 @@
 package com.secure.safespace;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -24,6 +26,7 @@ import com.secure.asynctask.DecryptAsyncTask;
 import com.secure.asynctask.EncryptAsyncTask;
 import com.secure.asynctask.SecureAsyncTask;
 import com.secure.util.Path;
+import com.secure.util.SafeSpaceUtils;
 import com.secure.util.SecureAdapter;
 
 import java.io.File;
@@ -31,6 +34,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 import com.secure.util.Process;
+import com.secure.util.UtilSecure;
 
 import net.sqlcipher.database.SQLiteDatabase;
 
@@ -50,9 +54,9 @@ public class SecureActivity extends AppCompatActivity implements View.OnClickLis
             File.separator + ".Secure";
     private String folderEncrypt= folderSecure + File.separator+".Encrypt";
     private String folderDecrypt= folderSecure + File.separator+".Decrypt";
-    private File encryptFolder;
     private File decryptFolder;
     private  int mPosition;
+    private String password= null;
     callbackListener callbackListener= new callbackListener () {
         @Override
         public void callback(int posistion) {
@@ -84,9 +88,8 @@ public class SecureActivity extends AppCompatActivity implements View.OnClickLis
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.in_app);
-
-        process = new Process();
-
+        Intent intent= getIntent();
+        password= intent.getStringExtra("password");
         choosseFile= (Button)findViewById(R.id.bt_choose_file);
         choosseFile.setOnClickListener(this);
         mArowBack= (ImageButton)findViewById(R.id.arow_back);
@@ -101,7 +104,7 @@ public class SecureActivity extends AppCompatActivity implements View.OnClickLis
         secureAdapter= new SecureAdapter(list,callbackListener);
 
         secureAsyncTask= new SecureAsyncTask(secureAdapter, list,
-                SecureActivity.this);
+                SecureActivity.this, password);
         secureAsyncTask.execute();
 
         FragmentManager manager = getSupportFragmentManager();
@@ -124,7 +127,7 @@ public class SecureActivity extends AppCompatActivity implements View.OnClickLis
                 public boolean onMenuItemClick(MenuItem item) {
                     if(item.getItemId()==(R.id.decrypt)){
                         Path path_delete= list.get(mPosition);
-                        DecryptAsyncTask decryptAsyncTask= new DecryptAsyncTask(SecureActivity.this, path_delete, list);
+                        DecryptAsyncTask decryptAsyncTask= new DecryptAsyncTask(SecureActivity.this, path_delete, list, password);
                         decryptAsyncTask.execute();
                         getSupportFragmentManager().popBackStack();
                     }
@@ -172,9 +175,20 @@ public class SecureActivity extends AppCompatActivity implements View.OnClickLis
                     // File file = new File(path);
                     // Initiate the upload
                     if (path != null) {
+                        SecureActivity secureActivity= new SecureActivity();
+                       // PasswordActivity passwordActivity= new PasswordActivity(setPass);
+//                        Intent intent= new Intent(SecureActivity.this, passwordActivity.getClass());
+//                        startActivity(intent);
                         File origal= new File(path);
-                        EncryptAsyncTask encryptAsyncTask= new EncryptAsyncTask(SecureActivity.this, path, database, list, secureAdapter);
-                        encryptAsyncTask.execute();
+                        String name =origal.getName();
+                        String encrypt= UtilSecure.folderEncrypt + File.separator + name;
+                        String decrypt= UtilSecure.folderDecrypt + File.separator + name;
+                        Intent intent= new Intent(SecureActivity.this, PasswordActivity.class);
+                        intent.putExtra("path",path);
+                        intent.setAction(SafeSpaceUtils.ACTION_LOGIN);
+                        startActivity(intent);
+                        database.insertPath(encrypt, path, decrypt);
+                        list.add(0, new Path(encrypt,path,decrypt));
                         secureAdapter.notifyDataSetChanged();
                     }
                 }

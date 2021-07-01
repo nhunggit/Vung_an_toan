@@ -11,6 +11,7 @@ import androidx.annotation.RequiresApi;
 
 import com.secure.safespace.Database;
 import com.secure.safespace.R;
+import com.secure.safespace.SecureActivity;
 import com.secure.util.Path;
 import com.secure.util.SecureAdapter;
 import com.secure.util.UtilSecure;
@@ -35,14 +36,13 @@ public class EncryptAsyncTask extends AsyncTask<Void, Void, Void> {
     private LinearLayout progressBar;
     private Database database;
     private List<Path> list;
-    private SecureAdapter secureAdapter;
+    private String password;
 
-    public EncryptAsyncTask(Activity contextParent, String path, Database database, List<Path> list, SecureAdapter secureAdapter){
-        this.contextParent= contextParent;
+    public EncryptAsyncTask(String path, String password){
         this.path= path;
         this.database= database;
         this.list= list;
-        this.secureAdapter= secureAdapter;
+        this.password= password;
     }
 
     @Override
@@ -53,14 +53,14 @@ public class EncryptAsyncTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        progressBar= (LinearLayout)contextParent.findViewById(R.id.load_activity_process);
-        progressBar.setVisibility(View.VISIBLE);
+        //progressBar= (LinearLayout)contextParent.findViewById(R.id.load_activity_process);
+        //progressBar.setVisibility(View.VISIBLE);
     }
 
     @Override
     protected void onPostExecute(Void unused) {
         super.onPostExecute(unused);
-        progressBar.setVisibility(View.GONE);
+        //progressBar.setVisibility(View.GONE);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -78,12 +78,10 @@ public class EncryptAsyncTask extends AsyncTask<Void, Void, Void> {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        Process process= new Process();
+        Process process= new Process(password);
         try {
             process.copyFile(new File(path),new File(decrypt));
             process.encrypt(fileInputStream, fileOutputStream);
-            database.insertPath(encrypt, path, decrypt);
-            list.add(0, new Path(encrypt,path,decrypt));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {

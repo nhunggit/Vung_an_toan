@@ -35,6 +35,11 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Process {
+    String password;
+    public Process(String password) {
+        this.password= password;
+    }
+
     public static String getPath(Context context, Uri uri) throws URISyntaxException {
         if ("content".equalsIgnoreCase(uri.getScheme())) {
             String[] projection = { "_data" };
@@ -56,11 +61,11 @@ public class Process {
 
         return null;
     }
-    public static void encrypt(FileInputStream fis, FileOutputStream fos) throws IOException, NoSuchAlgorithmException,
+    public void encrypt(FileInputStream fis, FileOutputStream fos) throws IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException {
 
         // Length is 16 byte
-        SecretKeySpec sks = new SecretKeySpec("MyDifficultPassw".getBytes(),
+        SecretKeySpec sks = new SecretKeySpec(password.getBytes(),
                 "AES");
         // Create cipher
         Cipher cipher = Cipher.getInstance("AES");
@@ -79,9 +84,9 @@ public class Process {
         fis.close();
     }
 
-    public static void decrypt(FileInputStream fis, FileOutputStream fos) throws IOException, NoSuchAlgorithmException,
+    public void decrypt(FileInputStream fis, FileOutputStream fos) throws IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException {
-        SecretKeySpec sks = new SecretKeySpec("MyDifficultPassw".getBytes(),
+        SecretKeySpec sks = new SecretKeySpec(password.getBytes(),
                 "AES");
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, sks);
@@ -94,12 +99,6 @@ public class Process {
         fos.flush();
         fos.close();
         cis.close();
-    }
-
-    private static String password="nhung123";
-
-    public static SecretKey generateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        return new SecretKeySpec(password.getBytes(), "AES");
     }
 
     public static byte[] encryptMsg(String message)
@@ -145,7 +144,7 @@ public class Process {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    public static void decryptFolder(String pathSource, String pathDestiation) throws FileNotFoundException {
+    public void decryptFolder(String pathSource, String pathDestiation) throws FileNotFoundException {
         try {
             File src = new File(pathSource);
             //Bkav Nhungltk: OTA -start

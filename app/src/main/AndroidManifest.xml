@@ -19,6 +19,7 @@
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <action android:name="com.android.safespae.action_create_pass"/>
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -26,10 +27,13 @@
         <activity android:name=".SecureActivity">
             <intent-filter>
                 <action android:name="android.intent.action.inApp" />
+                <action android:name="com.android.safespae.action_create_pass"/>
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".PasswordActivity"
+            android:exported="true" />
     </application>
 
 </manifest>
