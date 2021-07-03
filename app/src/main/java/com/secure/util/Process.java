@@ -21,8 +21,10 @@ import java.net.URISyntaxException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
+import java.security.spec.KeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -32,12 +34,30 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Process {
     String password;
     public Process(String password) {
         this.password= password;
+    }
+
+    private static final String salt= "salt_safe_space_bphone";
+
+    public SecretKey getKeyFromPassword(String password) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchAlgorithmException {
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
+        SecretKey secret = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+        return secret;
+    }
+
+    public static IvParameterSpec generateIv() {
+        byte[] iv = new byte[16];
+        (new SecureRandom()).nextBytes(iv);
+        return new IvParameterSpec(iv);
     }
 
     public static String getPath(Context context, Uri uri) throws URISyntaxException {
@@ -63,39 +83,41 @@ public class Process {
     }
     public void encrypt(FileInputStream fis, FileOutputStream fos) throws IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException {
-
-        // Length is 16 byte
-        SecretKeySpec sks = new SecretKeySpec(password.getBytes(),
-                "AES");
-        // Create cipher
         Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.ENCRYPT_MODE, sks);
-        // Wrap the output stream
+        try {
+            cipher.init(1,  SafeSpaceUtils.getKeyFromPassword(password));
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
         CipherOutputStream cos = new CipherOutputStream(fos, cipher);
-        // Write bytes
-        int b;
         byte[] d = new byte[8];
-        while ((b = fis.read(d)) != -1) {
+
+        int b;
+        while((b = fis.read(d)) != -1) {
             cos.write(d, 0, b);
         }
-        // Flush and close streams.
+
         cos.flush();
         cos.close();
         fis.close();
     }
 
     public void decrypt(FileInputStream fis, FileOutputStream fos) throws IOException, NoSuchAlgorithmException,
-            NoSuchPaddingException, InvalidKeyException {
-        SecretKeySpec sks = new SecretKeySpec(password.getBytes(),
-                "AES");
+            NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException {
         Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.DECRYPT_MODE, sks);
+        try {
+            cipher.init(2, SafeSpaceUtils.getKeyFromPassword(password));
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
         CipherInputStream cis = new CipherInputStream(fis, cipher);
-        int b;
         byte[] d = new byte[8];
-        while ((b = cis.read(d)) != -1) {
+
+        int b;
+        while((b = cis.read(d)) != -1) {
             fos.write(d, 0, b);
         }
+
         fos.flush();
         fos.close();
         cis.close();
@@ -136,10 +158,6 @@ public class Process {
         File file= new File(path);
         String name= file.getName();
         String parent= file.getParent();
-//        Log.d("nhungltk", "createPath: "+name+" parent "+parent);
-//            String newName= String.valueOf(encryptMsg(name,generateKey()));
-//            String newPath= parent + "/" + newName;
-//            Log.d("nhungltk", "createPath new: "+newPath);
         return encryptMsg(name);
     }
 
@@ -147,11 +165,8 @@ public class Process {
     public void decryptFolder(String pathSource, String pathDestiation) throws FileNotFoundException {
         try {
             File src = new File(pathSource);
-            //Bkav Nhungltk: OTA -start
-            //sua lai do code truoc bi loi tao 2 thu muc con ben trong thu muc destination
             File dst = new File(pathDestiation);
             //Bkav Nhungltk: OTA-end
-
             if (src.isDirectory()) {
 
                 String files[] = src.list();
@@ -182,9 +197,9 @@ public class Process {
         }
 
         String sourcePath =sourceFile.getPath();
-        InputStream source = new FileInputStream(sourcePath);
+        FileInputStream source = new FileInputStream(sourcePath);
         String destinationPath =  destFile.getPath();
-        OutputStream destination = new FileOutputStream(destinationPath);
+        FileOutputStream destination = new FileOutputStream(destinationPath);
         try {
             FileUtils.copy(source, destination);
             //Bkav Nhungltk: OTA -start

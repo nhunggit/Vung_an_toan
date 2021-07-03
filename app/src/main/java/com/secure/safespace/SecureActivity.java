@@ -1,8 +1,10 @@
 package com.secure.safespace;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,10 +17,13 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -30,13 +35,21 @@ import com.secure.util.SafeSpaceUtils;
 import com.secure.util.SecureAdapter;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import com.secure.util.Process;
 import com.secure.util.UtilSecure;
 
 import net.sqlcipher.database.SQLiteDatabase;
+
+import javax.crypto.NoSuchPaddingException;
 
 public class SecureActivity extends AppCompatActivity implements View.OnClickListener{
     private Toolbar toolbar;
@@ -54,9 +67,10 @@ public class SecureActivity extends AppCompatActivity implements View.OnClickLis
             File.separator + ".Secure";
     private String folderEncrypt= folderSecure + File.separator+".Encrypt";
     private String folderDecrypt= folderSecure + File.separator+".Decrypt";
+    private File encryptFolder;
     private File decryptFolder;
     private  int mPosition;
-    private String password= null;
+    private static String password;
     callbackListener callbackListener= new callbackListener () {
         @Override
         public void callback(int posistion) {
@@ -90,6 +104,9 @@ public class SecureActivity extends AppCompatActivity implements View.OnClickLis
         setContentView(R.layout.in_app);
         Intent intent= getIntent();
         password= intent.getStringExtra("password");
+        process = new Process(password);
+        path= intent.getStringExtra("path");
+
         choosseFile= (Button)findViewById(R.id.bt_choose_file);
         choosseFile.setOnClickListener(this);
         mArowBack= (ImageButton)findViewById(R.id.arow_back);
@@ -112,6 +129,41 @@ public class SecureActivity extends AppCompatActivity implements View.OnClickLis
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.replace(R.id.fragment, fragment);
         transaction.commit();
+        if(path!=null){
+            processEncrypt();
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    public void processEncrypt(){
+        File origal= new File(path);
+        String name =origal.getName();
+        String encrypt= UtilSecure.folderEncrypt + File.separator + name;
+        String decrypt= UtilSecure.folderDecrypt + File.separator + name;
+        FileInputStream fileInputStream = null;
+        FileOutputStream fileOutputStream= null;
+        try {
+            fileInputStream = new FileInputStream(path);
+            fileOutputStream = new FileOutputStream(encrypt);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        Process process= new Process(password);
+        try {
+            process.copyFile(new File(path),new File(decrypt));
+            process.encrypt(fileInputStream, fileOutputStream);
+            database.insertPath(encrypt, path, decrypt);
+            list.add(0, new Path(encrypt,path,decrypt));
+            secureAdapter.notifyDataSetChanged();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -171,25 +223,11 @@ public class SecureActivity extends AppCompatActivity implements View.OnClickLis
                     } catch (URISyntaxException e) {
                         e.printStackTrace();
                     }
-                    // Get the file instance
-                    // File file = new File(path);
-                    // Initiate the upload
                     if (path != null) {
-                        SecureActivity secureActivity= new SecureActivity();
-                       // PasswordActivity passwordActivity= new PasswordActivity(setPass);
-//                        Intent intent= new Intent(SecureActivity.this, passwordActivity.getClass());
-//                        startActivity(intent);
-                        File origal= new File(path);
-                        String name =origal.getName();
-                        String encrypt= UtilSecure.folderEncrypt + File.separator + name;
-                        String decrypt= UtilSecure.folderDecrypt + File.separator + name;
                         Intent intent= new Intent(SecureActivity.this, PasswordActivity.class);
-                        intent.putExtra("path",path);
                         intent.setAction(SafeSpaceUtils.ACTION_LOGIN);
+                        intent.putExtra("path", path);
                         startActivity(intent);
-                        database.insertPath(encrypt, path, decrypt);
-                        list.add(0, new Path(encrypt,path,decrypt));
-                        secureAdapter.notifyDataSetChanged();
                     }
                 }
                 break;

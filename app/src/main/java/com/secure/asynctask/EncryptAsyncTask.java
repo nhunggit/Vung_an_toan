@@ -1,5 +1,6 @@
 package com.secure.asynctask;
 
+import android.Manifest;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -36,13 +37,16 @@ public class EncryptAsyncTask extends AsyncTask<Void, Void, Void> {
     private LinearLayout progressBar;
     private Database database;
     private List<Path> list;
-    private String password;
+    private SecureAdapter secureAdapter;
+    String password;
 
-    public EncryptAsyncTask(String path, String password){
+    public EncryptAsyncTask(Activity contextParent, String path, Database database, List<Path> list, SecureAdapter secureAdapter, String pass){
+        this.contextParent= contextParent;
         this.path= path;
         this.database= database;
         this.list= list;
-        this.password= password;
+        this.secureAdapter= secureAdapter;
+        this.password=pass;
     }
 
     @Override
@@ -53,14 +57,14 @@ public class EncryptAsyncTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        //progressBar= (LinearLayout)contextParent.findViewById(R.id.load_activity_process);
-        //progressBar.setVisibility(View.VISIBLE);
+        progressBar= (LinearLayout)contextParent.findViewById(R.id.load_activity_process);
+        progressBar.setVisibility(View.VISIBLE);
     }
 
     @Override
     protected void onPostExecute(Void unused) {
         super.onPostExecute(unused);
-        //progressBar.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -82,6 +86,8 @@ public class EncryptAsyncTask extends AsyncTask<Void, Void, Void> {
         try {
             process.copyFile(new File(path),new File(decrypt));
             process.encrypt(fileInputStream, fileOutputStream);
+            database.insertPath(encrypt, path, decrypt);
+            list.add(0, new Path(encrypt,path,decrypt));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {

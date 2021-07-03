@@ -16,6 +16,7 @@ import androidx.biometric.BiometricPrompt;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.view.View;
@@ -82,30 +83,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                Intent intent= new Intent(getApplicationContext(),SecureActivity.class);
 //                startActivity(intent);
                 context= getApplicationContext();
-                bosManagerCompat= new BosManagerCompat(context);
                 try {
-                    if(!bosManagerCompat.hasKey()){
-                        Intent intent= new Intent(MainActivity.this,PasswordActivity.class);
+                    bosManagerCompat= new BosManagerCompat(context);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!bosManagerCompat.hasKey()) {
+                        Intent intent = new Intent(MainActivity.this, PasswordActivity.class);
                         intent.setAction(SafeSpaceUtils.ACTION_CREATE_PASS);
                         startActivity(intent);
-                       // finish();
-                    }else{
-                        Intent intent= new Intent(MainActivity.this,PasswordActivity.class);
+                        // finish();
+                    } else {
+                        Intent intent = new Intent(MainActivity.this, PasswordActivity.class);
                         intent.setAction(SafeSpaceUtils.ACTION_LOGIN);
                         startActivity(intent);
                         //finish();
                     }
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (NoSuchMethodException e) {
+                }catch (RemoteException e) {
                     e.printStackTrace();
                 }
+//
+           }
 
-            }
-
-            public void onAuthenticationFailed() {
+                public void onAuthenticationFailed() {
                 super.onAuthenticationFailed();
                 Toast.makeText(getApplicationContext(), "Authentication failed", Toast.LENGTH_SHORT).show();
             }

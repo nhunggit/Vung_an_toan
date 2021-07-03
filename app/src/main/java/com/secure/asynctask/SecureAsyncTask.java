@@ -52,10 +52,9 @@ public class SecureAsyncTask extends AsyncTask<Void, Void, File> {
                 decryptFolder.mkdirs();
             }
         }
-
+        Process process=new Process(password);
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                Process process= new Process(password);
                 process.decryptFolder(UtilSecure.folderEncrypt,UtilSecure.folderDecrypt);
             }
         } catch (FileNotFoundException e) {
